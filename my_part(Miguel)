@@ -1,0 +1,52 @@
+##ESTEBAN##
+
+import numpy as np # 
+import pandas as pd # 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+import keras 
+from keras.layers import Dense
+from keras.models import Sequential
+
+dw = pd.read_csv('seattleWeather_1948-2017.csv')  #Cargar datos
+print(dw.shape)  #Mostrar el tamaño de los datos
+
+dw.head()  #Mostrar los primeros 5 datos
+
+dw['rain']=[1 if i==True else 0 for i in dw['RAIN']] # Copiar la columna de RAIN a rain
+                                                    # Cambiar a binario los datos
+del dw["RAIN"]  # Eliminar la columna RAIN
+
+dw.columns  # Mostrar los indices de las columnas
+
+dw.head()
+
+dw.apply(pd.isnull).sum()/dw.shape[0]  # Mostrar dónde faltan valores
+dw[pd.isnull(dw["PRCP"])]  # Mostrar en qué filas faltan valores de PRCP
+
+##MIGUEL##
+dw["PRCP"].value_counts()  # Ver el numero de valores similares en la precipitacion
+dw["PRCP"] = dw["PRCP"].fillna(0)  # Llenar de 0 los valores faltantes                              
+dw[pd.isnull(dw["PRCP"])]  # Mostrar la nueva tabla de datos por si falta alguno
+
+#SE DIVIDE EN 2 EL PROCESO DE APRENDIZAJE: EN x se encuentra precipitacion,temperatura maxima y minima, y en "y" el valor binario de si llovio o no
+X=dw[['PRCP', 'TMAX', 'TMIN']]
+y=dw[['rain']]
+
+# Se importa train_test_split para poder entrenar a nuestro modelo
+from sklearn.model_selection import train_test_split
+
+#Se asignan los tamaños de los valores en aleatorio que se usaran para entrenar el modelo, así como el tamaño de los mismos
+xtrain,xtest,ytrain,ytest=train_test_split(X,y,test_size=0.2, random_state=41)
+
+#Se cambian los datos de pandas a tensores para poderlos procesar
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+xtrain = scaler.fit_transform(xtrain)
+xtest = scaler.transform(xtest)
+
+# Vemos el numero de datos en cada vector para saber si no se ha perdido alguno
+len(xtrain)
+len(ytrain)
