@@ -1,0 +1,82 @@
+##ESTEBAN##
+
+import numpy as np # 
+import pandas as pd # 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+import keras 
+from keras.layers import Dense
+from keras.models import Sequential
+
+dw = pd.read_csv('seattleWeather_1948-2017.csv')  #Cargar datos
+print(dw.shape)  #Mostrar el tamaño de los datos
+
+dw.head()  #Mostrar los primeros 5 datos
+
+dw['rain']=[1 if i==True else 0 for i in dw['RAIN']] # Copiar la columna de RAIN a rain
+                                                    # Cambiar a binario los datos
+del dw["RAIN"]  # Eliminar la columna RAIN
+
+dw.columns  # Mostrar los indices de las columnas
+
+dw.head()
+
+dw.apply(pd.isnull).sum()/dw.shape[0]  # Mostrar dónde faltan valores
+dw[pd.isnull(dw["PRCP"])]  # Mostrar en qué filas faltan valores de PRCP
+
+##MIGUEL##
+dw["PRCP"].value_counts()  # Ver el numero de valores similares en la precipitacion
+dw["PRCP"] = dw["PRCP"].fillna(0)  # Llenar de 0 los valores faltantes                              
+dw[pd.isnull(dw["PRCP"])]  # Mostrar la nueva tabla de datos por si falta alguno
+
+#SE DIVIDE EN 2 EL PROCESO DE APRENDIZAJE: EN x se encuentra precipitacion,temperatura maxima y minima, y en "y" el valor binario de si llovio o no
+X=dw[['PRCP', 'TMAX', 'TMIN']]
+y=dw[['rain']]
+
+# Se importa train_test_split para poder entrenar a nuestro modelo
+from sklearn.model_selection import train_test_split
+
+#Se asignan los tamaños de los valores en aleatorio que se usaran para entrenar el modelo, así como el tamaño de los mismos
+xtrain,xtest,ytrain,ytest=train_test_split(X,y,test_size=0.2, random_state=41)
+
+#Se cambian los datos de pandas a tensores para poderlos procesar
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+xtrain = scaler.fit_transform(xtrain)
+xtest = scaler.transform(xtest)
+
+# Vemos el numero de datos en cada vector para saber si no se ha perdido alguno
+len(xtrain)
+len(ytrain)
+
+##DIEGO##
+#Se utilizan 3 variables de entrada, y la funcion de activacion relu en la que tenemos 32 neuronas y posteriormente 16 y finalmente la funcion sigmoide
+ann  = Sequential()
+ann.add(Dense(units= 32, activation = 'relu', input_dim=3))
+ann.add(Dense(units= 16, activation = 'relu'))
+ann.add(Dense(units= 1, activation = 'sigmoid'))
+ann.compile(optimizer='adam',
+              loss='mean_squared_error',
+              metrics=['accuracy'])
+
+# Se entrena el modelo y experimentalmente se le asigno un tamaño de batch de 15 y 20 epochs y para placer visual verbose de 1
+history=ann.fit(xtrain,ytrain, batch_size=15, epochs=20, verbose= 1)
+
+# Se muestra un gráfico de la diferencia entre la función de costo y la precisión
+plt.plot(history.history['accuracy'], label='Accuracy', color='blue')
+plt.plot(history.history['loss'], label='Loss', color='red')
+plt.legend()
+
+#Muestra la predicción de manera binaria de los datos entrenados
+Y_pred = ann.predict(xtest)
+Y_pred = [ 1 if y>=0.5 else 0 for y in Y_pred]
+print(Y_pred)
+
+#Matriz de confusión para confirmar con los verdaderos positivos y los verdaderos negativos que nuestro modelo esté entrenado correctamente 
+from sklearn.metrics import confusion_matrix
+from sklearn import metrics
+cm = confusion_matrix(ytest, Y_pred)
+cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix = cm, display_labels = [False, True])
+cm_display.plot()
