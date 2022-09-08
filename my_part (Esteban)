@@ -1,0 +1,25 @@
+import numpy as np # 
+import pandas as pd # 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+import keras 
+from keras.layers import Dense
+from keras.models import Sequential
+
+dw = pd.read_csv('seattleWeather_1948-2017.csv')  #Cargar datos
+print(dw.shape)  #Mostrar el tamaño de los datos
+
+dw.head()  #Mostrar los primeros 5 datos
+
+dw['rain']=[1 if i==True else 0 for i in dw['RAIN']] # Copiar la columna de RAIN a rain
+                                                    # Cambiar a binario los datos
+del dw["RAIN"]  # Eliminar la columna RAIN
+
+dw.columns  # Mostrar los indices de las columnas
+
+dw.head()
+
+dw.apply(pd.isnull).sum()/dw.shape[0]  # Mostrar dónde faltan valores
+dw[pd.isnull(dw["PRCP"])]  # Mostrar en qué filas faltan valores de PRCP
